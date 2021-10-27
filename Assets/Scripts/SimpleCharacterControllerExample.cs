@@ -5,38 +5,30 @@ public class SimpleCharacterControllerExample : MonoBehaviour
 	RaycastHit hit;
 	public float raycastDistance = 1f;
 	public LayerMask raycastMask;
-	public Transform groundCast;
-	public Transform player;
-	public Transform playerAxis;
 
-	[SerializeField] float moveSpeed = 2f;
-	[SerializeField] float turnSpeed = 2f;
-	[SerializeField] float orientationSpeed = 1.2f;
+	public Transform playerAxis; 
 
-	void Start ()
-	{
-		if(player == null)
-		{
-			player = this.transform;
-		}
-	}
+	[SerializeField] float moveSpeed = 10f;
+	[SerializeField] float turnSpeed = 200f;
+	[SerializeField] float orientationSpeed = 2f;
 
 	void Update ()
 	{
-		float twist = Input.GetAxis("Horizontal") * turnSpeed;
-		float moveDir = Input.GetAxis("Vertical") * moveSpeed;
+		float twist = Input.GetAxis("Horizontal") * turnSpeed * Time.deltaTime;
+		float moveDir = Input.GetAxis("Vertical") * moveSpeed * Time.deltaTime;
+		
+        if (Input.GetKey(KeyCode.LeftShift)) { moveDir *= 2f; }
 
 		transform.Translate(0, 0, moveDir);
+
 		transform.RotateAround(transform.position, transform.up, twist);
 
-		if(Physics.Raycast(new Ray(groundCast.position, -groundCast.up), out hit, raycastDistance, raycastMask))
+		var groundRayPos = transform.position + transform.up * 1.3f;
+		if(Physics.Raycast(new Ray(groundRayPos, -transform.up), out hit, raycastDistance, raycastMask))
 		{
-			var targetForward = Vector3.Cross(hit.normal.normalized, transform.forward);
-			playerAxis.forward = Vector3.MoveTowards(playerAxis.forward, targetForward, orientationSpeed * Time.deltaTime);
+			var targetRight = Vector3.Cross(hit.normal.normalized, -transform.right);
+			playerAxis.forward = Vector3.RotateTowards(playerAxis.forward, targetRight, orientationSpeed * Time.deltaTime, orientationSpeed * Time.deltaTime);
 			transform.position = new Vector3(transform.position.x, hit.point.y, transform.position.z);
-			//Debug.Log("We hit! " + hit.transform.name);
 		}
-
-		Debug.DrawRay(groundCast.position, -groundCast.up);
 	}
 }
